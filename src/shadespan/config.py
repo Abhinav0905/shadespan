@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     units_per_analysis: int = 7
     max_units_per_run: int = 400
 
+    # --- TLS ---
+    # Corporate networks that inspect HTTPS present their own root, which is
+    # not in certifi's store, so every live call dies with
+    # CERTIFICATE_VERIFY_FAILED. Point this at a PEM holding certifi's roots
+    # *plus* your company root; `make ca-bundle` builds one. Empty means use
+    # the default trust store, which is right on an unmanaged machine.
+    ca_bundle: str = ""
+
     # --- Orchestration ---
     concurrency: int = 3
     poll_interval_s: float = 2.0

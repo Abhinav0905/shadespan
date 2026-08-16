@@ -8,3 +8,4 @@ dist/
 build/
 .venv/
 smoke_*.png
+ca-bundle.pem

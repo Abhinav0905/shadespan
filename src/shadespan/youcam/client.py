@@ -38,7 +38,12 @@ class YouCamClient:
     name = "youcam-live"
 
     def __init__(self) -> None:
-        self._http = httpx.AsyncClient(timeout=settings.http_timeout_s)
+        verify: str | bool = settings.ca_bundle or True
+        if settings.ca_bundle and not Path(settings.ca_bundle).exists():
+            log.warning("SHADESPAN_CA_BUNDLE points at %s, which does not exist; "
+                        "falling back to the default trust store", settings.ca_bundle)
+            verify = True
+        self._http = httpx.AsyncClient(timeout=settings.http_timeout_s, verify=verify)
         self._tokens = TokenProvider(self._http)
         self._file_cache: dict[str, str] = {}  # sha of path+mtime -> file_id
 
