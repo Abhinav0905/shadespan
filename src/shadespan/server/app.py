@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from ..cli import DEFAULT_CATALOG, DEFAULT_PANEL, _load_catalog, _load_panel, _make_client
 from ..config import settings
-from ..pipeline.orchestrator import run_audit
+from ..pipeline.orchestrator import _cache_key, run_audit
 from ..report.html import write_report
 
 app = FastAPI(title="ShadeSpan")
@@ -203,15 +203,28 @@ async def _tryon(job_id, job_dir, garment, garment_path, pan, pan_dir, live) -> 
     job = _jobs[job_id]
     sem = asyncio.Semaphore(settings.concurrency)
 
+    # Same content-addressed cache the catalogue audit uses, so dropping a file
+    # twice is free. That matters more here than it looks: rehearsing a demo,
+    # or a judge re-dropping the sample, would otherwise spend units per take.
+    cache_dir = RUNS_DIR / "_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
     async def one(model):
         person = model.image_path(pan_dir)
         cell = {"tone_id": model.id, "label": model.label, "fitzpatrick": model.fitzpatrick,
                 "skin_hex": model.skin_hex}
         try:
-            async with sem:
-                img, _task = await client.try_on(person, garment_path, garment.category.value)
+            key = _cache_key(garment_path, person, garment.category.value, client.name)
+            cached = cache_dir / f"{key}.png"
             out = job_dir / f"{model.id}.png"
-            out.write_bytes(img)
+            if cached.exists():
+                out.write_bytes(cached.read_bytes())
+                cell["cached"] = True
+            else:
+                async with sem:
+                    img, _task = await client.try_on(person, garment_path, garment.category.value)
+                out.write_bytes(img)
+                cached.write_bytes(img)
             drift = None
             try:
                 drift, _hex = render_drift(out, person, garment.hex)
@@ -222,7 +235,7 @@ async def _tryon(job_id, job_dir, garment, garment_path, pan, pan_dir, live) -> 
                         score=score.score, contrast=score.contrast_ratio,
                         delta_e=score.skin_delta_e, washout=score.washout,
                         flags=score.flags, grade=grade_for(score.score))
-            if live:
+            if live and not cell.get("cached"):
                 global _spent_units
                 _spent_units += settings.units_per_vto
                 job["units"] = job.get("units", 0) + settings.units_per_vto

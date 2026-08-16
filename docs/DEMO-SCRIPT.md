@@ -124,7 +124,9 @@ Thank you."
 * Have `assets/demo-drops/sand-tee.png` and `teal-tee.png` visible in a Finder window, ready to drag.
 * Full screen the browser and hide your bookmarks bar.
 * **Do not show the `.env` file**, and do not scroll back to any terminal output containing your API key.
-* A live drop takes about 30 seconds. That is fine on camera — but if you would rather not wait, drop the same file once before recording: the render cache makes the second drop nearly instant and free.
+* **A fresh live drop takes about 30 seconds** — six real API calls. Record it fresh and trim the wait in editing. That is the honest version, and it is the one that shows the API genuinely working.
+* Dropping the *same file* again is served from cache: 2 seconds and 0 units. Useful for rehearsing the drag-and-drop without spending anything. Do not narrate a cached drop as if it is calling the API — it is not.
+* So: rehearse on a cached file, then **use a file you have not dropped yet for the real take.**
 * If the network misbehaves mid-take, switch Engine to **Mock** and keep going. It renders the same layout offline with zero units.
 * Record at 1440p if you can. The grid has small details.
 
