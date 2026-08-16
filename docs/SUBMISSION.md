@@ -18,7 +18,7 @@ Use `docs/screenshots/cover.png` (1200x630). It is the side-by-side proof, not t
 
 ### The problem
 
-Most catalogs photograph each garment on one model. Every shopper on a different skin tone is guessing, and the guess is expensive on both sides. A beige tee that vanishes against fair skin, a pale yellow that reads washed-out on deep skin, a camel that turns invisible on the exact tone it matches — the shopper either never clicks, or clicks and returns it. Returns run 25–40% in online apparel and colour dissatisfaction is a large slice of that.
+Most catalogs photograph each garment on one model. Every shopper on a different skin tone is guessing, and the guess is expensive on both sides. A beige tee that vanishes against fair skin, a pale yellow that reads washed-out on deep skin, a camel that turns invisible on the exact tone it matches — the shopper either never clicks, or clicks and returns it. US online apparel returns run 30–35%, against an e-commerce average of 19.3% (NRF 2025), and roughly 23% of retail returns are attributed to style and colour rather than size or fit.
 
 Brands almost never find out which garments are doing this. Nobody renders the full garment-by-tone grid before launch, because shooting 14 garments on 6 models is 84 shots and a week of studio time.
 

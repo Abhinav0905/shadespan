@@ -74,7 +74,7 @@ If you use the average, a garment that fails badly for one group still looks fin
 
 ## Part 4 — What is the benefit? (1:50 – 2:20)
 
-> **On screen:** the "Why it's worth doing" section of the landing page, then the end card.
+> **On screen:** the "What a brand gets" section of the landing page, then the end card.
 
 Say:
 
@@ -105,7 +105,7 @@ Thank you."
 | 3 | 0:35 | Terminal: `shadespan audit --live --max-units 250` running to 84. |
 | 4 | 1:05 | The render matrix, scrolling slowly from top to bottom. |
 | 5 | 1:30 | `report.html` in a browser — worst offenders, then one expanded row of scores. |
-| 6 | 1:50 | The landing page "Why it's worth doing" cards. |
+| 6 | 1:50 | The landing page "What a brand gets" cards. |
 | 7 | 2:15 | End card with the GitHub link. |
 
 ## Before you record
