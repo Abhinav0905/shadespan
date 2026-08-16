@@ -21,7 +21,7 @@ ShadeSpan renders that grid. Then it grades it.
 5. Grades each garment on its **worst** tone, because averages hide exactly the customers this tool exists to protect.
 6. Writes a self-contained HTML report: the full render matrix, per-tone scores, worst offenders, and every flag with its reason in plain English.
 
-Sample output, from a real run: **[docs/sample-report.html](docs/sample-report.html)**.
+**Live report: https://abhinav0905.github.io/shadespan/report.html** — 84 real YouCam renders, scored and graded.
 
 ## Results on the demo catalog
 
@@ -31,14 +31,14 @@ The bundled catalog is fully synthetic (drawn by `scripts/generate_catalog.py`, 
 
 | Garment | Grade | Min score | Weakest tones |
 |---|---|---|---|
-| Blush Crew Tee | F | 10.0 | Fitzpatrick I, II |
-| Dusty Pink Shift Dress | F | 10.2 | Fitzpatrick I, II |
+| Blush Crew Tee | F | 13.7 | Fitzpatrick II, I |
+| Dusty Pink Shift Dress | F | 14.6 | Fitzpatrick I, II |
 | Camel Crew Tee | F | 15.7 | Fitzpatrick IV, III |
 | Chocolate Long Sleeve | F | 18.9 | Fitzpatrick VI, V |
 | Rust Crew Tee | F | 27.8 | Fitzpatrick V, IV |
-| Ivory Crew Tee | F | 30.5 | Fitzpatrick II, I |
+| Ivory Crew Tee | F | 31.4 | Fitzpatrick II, I |
 | … | | | |
-| Emerald Crew Tee | B | 76.8 | Fitzpatrick VI, III |
+| Emerald Crew Tee | B | 76.8 | Fitzpatrick VI, I |
 | Cobalt Crew Tee | A | 88.8 | Fitzpatrick VI, I |
 
 The failures land where the color science predicts: pinks and ivories collapse on the fair end, chocolate and rust on the deep end, camel in the middle. Cobalt and emerald clear every tone.

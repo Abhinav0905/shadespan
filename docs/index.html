@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShadeSpan — catalog inclusivity audits</title>
+<meta name="description" content="Render every garment on every skin tone with YouCam Apparel VTO, score how each colour actually reads, and catch the ones that disappear before the season ships.">
+<style>
+  :root{
+    --ink:#191712; --paper:#FCFCFA; --muted:#6E6A60; --line:#E4E1D8;
+    --wall:#F1EFE8; --fail:#A93226; --pass:#0E7C5B; --warn:#A16A0E;
+    --chip-fail:#F6DFDB; --chip-pass:#E3F1EA; --chip-warn:#F6ECD7;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--wall); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px}
+  h1,h2,h3{font-family:Georgia,"Iowan Old Style","Times New Roman",serif; font-weight:600; letter-spacing:-.01em}
+  h1{font-size:clamp(2.1rem,5.5vw,3.4rem); line-height:1.08; margin:0 0 .4em}
+  h2{font-size:clamp(1.4rem,3vw,1.9rem); margin:0 0 .5em}
+  h3{font-size:1.05rem; margin:0 0 .35em}
+  p{margin:0 0 1em}
+  a{color:var(--ink)}
+  header{padding:72px 0 48px; border-bottom:1px solid var(--line); background:var(--paper)}
+  .eyebrow{font-size:.75rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:1.4em}
+  .lede{font-size:1.15rem; color:#3B3830; max-width:60ch}
+  .cta{display:flex; flex-wrap:wrap; gap:12px; margin-top:32px}
+  .btn{
+    display:inline-block; padding:12px 22px; border-radius:6px; text-decoration:none;
+    font-size:.94rem; font-weight:600; border:1px solid var(--ink);
+  }
+  .btn-primary{background:var(--ink); color:var(--paper)}
+  .btn-ghost{background:transparent; color:var(--ink)}
+  section{padding:52px 0; border-bottom:1px solid var(--line)}
+  section.paper{background:var(--paper)}
+  .stat{display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; margin:8px 0 4px}
+  .stat b{font-family:Georgia,serif; font-size:clamp(2.6rem,7vw,4rem); line-height:1; font-weight:600}
+  .stat span{color:var(--muted); max-width:44ch}
+  .grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); margin-top:28px}
+  .card{background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:20px}
+  section.paper .card{background:var(--wall)}
+  .card p{margin:0; color:var(--muted); font-size:.94rem}
+  figure{margin:28px 0 0}
+  figure img{width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#fff}
+  figcaption{color:var(--muted); font-size:.86rem; margin-top:10px}
+  .scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse; width:100%; min-width:520px; font-size:.93rem; margin-top:18px}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line)}
+  th{font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600}
+  .sw{display:inline-block; width:13px; height:13px; border-radius:3px; border:1px solid rgba(0,0,0,.16); vertical-align:-2px; margin-right:8px}
+  .g{display:inline-block; min-width:22px; text-align:center; padding:1px 7px; border-radius:11px; font-weight:700; font-size:.8rem}
+  .gF{background:var(--chip-fail); color:var(--fail)}
+  .gD{background:var(--chip-warn); color:var(--warn)}
+  .gB,.gA{background:var(--chip-pass); color:var(--pass)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.88em; background:var(--wall); padding:1px 5px; border-radius:4px}
+  section.paper code{background:var(--wall)}
+  footer{padding:40px 0 64px; color:var(--muted); font-size:.9rem}
+  .note{border-left:3px solid var(--line); padding-left:18px; color:var(--muted); font-size:.95rem}
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#EDEAE2; --paper:#1B1A17; --muted:#A19C91; --line:#332F29; --wall:#131210;
+      --fail:#E8897C; --pass:#5FC69C; --warn:#D9A94E;
+      --chip-fail:#3A2320; --chip-pass:#16332A; --chip-warn:#382D18;
+    }
+    figure img{background:#fff}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">YouCam API Hackathon 2026 · Apparel VTO + Skin AI</div>
+    <h1>Some colours disappear<br>on some people.</h1>
+    <p class="lede">ShadeSpan renders every garment in a catalog on every skin tone using YouCam Apparel VTO, scores how each colour actually reads against each tone, and flags the ones that vanish — before the season ships.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="report.html">Open the live audit report</a>
+      <a class="btn btn-ghost" href="https://github.com/Abhinav0905/shadespan">View the code</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>The problem</h2>
+    <p>Most online shops photograph each garment on <strong>one</strong> model. Everyone whose skin is a different shade is guessing.</p>
+    <p>Sometimes the guess is wrong in an expensive way. A beige tee that blends into fair skin. A pale yellow that looks washed-out on deep skin. A camel jumper that turns nearly invisible on the exact skin tone it happens to match. The shopper either never clicks, or clicks and sends it back.</p>
+    <p>Brands rarely find out which garments do this. Photographing 14 garments on 6 models is 84 separate shots and a week of studio time, so nobody checks. The problem only shows up months later, buried in returns data.</p>
+  </div>
+</section>
+
+<section class="paper">
+  <div class="wrap">
+    <h2>What we built</h2>
+    <p>A tool that does those 84 shots in about two minutes, then marks them.</p>
+    <div class="grid">
+      <div class="card"><h3>1 · Render</h3><p>Every garment is tried on every member of a six-person panel spanning the full Fitzpatrick I–VI range, using YouCam Apparel VTO.</p></div>
+      <div class="card"><h3>2 · Measure</h3><p>Each combination is scored on how clearly the garment separates from the skin — using published colour science, not opinion.</p></div>
+      <div class="card"><h3>3 · Grade</h3><p>Each garment is graded on its <strong>worst</strong> skin tone, never its average, then written up in a report a merchandiser can act on.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What it found</h2>
+    <div class="stat">
+      <b>14.3%</b>
+      <span>of garments in the demo catalog hold a passing grade on <em>every</em> skin tone. Two out of fourteen.</span>
+    </div>
+    <figure>
+      <img src="screenshots/02-render-matrix.png" alt="A grid of 84 photographs: fourteen garments down the side, six skin tones across the top, each cell showing that garment rendered on that person. Rows are ordered worst grade first.">
+      <figcaption>All 84 renders, worst grade first. Each row is one garment across six skin tones — the failures are visible without reading a single number.</figcaption>
+    </figure>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Garment</th><th>Grade</th><th>Worst score</th><th>Fails hardest on</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:#EFC4B8"></span>Blush Crew Tee</td><td><span class="g gF">F</span></td><td>13.7</td><td>Fitzpatrick II, I</td></tr>
+          <tr><td><span class="sw" style="background:#D8A7A0"></span>Dusty Pink Shift Dress</td><td><span class="g gF">F</span></td><td>14.6</td><td>Fitzpatrick I, II</td></tr>
+          <tr><td><span class="sw" style="background:#C19A6B"></span>Camel Crew Tee</td><td><span class="g gF">F</span></td><td>15.7</td><td>Fitzpatrick IV, III</td></tr>
+          <tr><td><span class="sw" style="background:#5A3A26"></span>Chocolate Long Sleeve</td><td><span class="g gF">F</span></td><td>18.9</td><td>Fitzpatrick VI, V</td></tr>
+          <tr><td><span class="sw" style="background:#B4552D"></span>Rust Crew Tee</td><td><span class="g gF">F</span></td><td>27.8</td><td>Fitzpatrick V, IV</td></tr>
+          <tr><td><span class="sw" style="background:#F1E8DC"></span>Ivory Crew Tee</td><td><span class="g gF">F</span></td><td>31.4</td><td>Fitzpatrick II, I</td></tr>
+          <tr><td><span class="sw" style="background:#0E7C5B"></span>Emerald Crew Tee</td><td><span class="g gB">B</span></td><td>76.8</td><td>Fitzpatrick VI, I</td></tr>
+          <tr><td><span class="sw" style="background:#2B4FC7"></span>Cobalt Crew Tee</td><td><span class="g gA">A</span></td><td>88.8</td><td>Fitzpatrick VI, I</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:22px">The pattern is not random. Pinks and ivories collapse on the fairest tones. Chocolate and rust collapse on the deepest. Camel fails in the middle of the range. Cobalt and emerald clear everyone.</p>
+    <p class="note">That matters because the colour maths and the renders were produced independently — one is physics, the other is a generative model. They agree.</p>
+  </div>
+</section>
+
+<section class="paper">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p>Every garment-and-tone pair gets a score out of 100, built from three measurements plus one veto:</p>
+    <div class="grid">
+      <div class="card"><h3>Visibility · 45</h3><p>How strongly the garment's edge reads against skin, by brightness contrast (the WCAG standard) or by colour contrast — whichever is stronger, because human vision uses either.</p></div>
+      <div class="card"><h3>Distinction · 45</h3><p>How far apart the two colours are perceptually, using CIEDE2000 — the industry standard for "can a person tell these apart".</p></div>
+      <div class="card"><h3>Richness · 10</h3><p>Saturated colours survive a small brightness gap better than muted ones, so they earn a little back.</p></div>
+      <div class="card"><h3>Washout veto</h3><p>If a garment sits too close to skin in brightness, saturation <em>and</em> hue, the cell is capped at a fail regardless of the rest. That failure is categorical, not marginal.</p></div>
+    </div>
+    <p style="margin-top:26px">Each garment is then graded on its <strong>worst</strong> tone. An average would hide precisely the customer this tool exists to protect.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Why it's worth doing</h2>
+    <div class="grid">
+      <div class="card"><h3>Cut the bad colourway early</h3><p>Merchandisers see which colours fail, and on whom, while there's still time to drop or recolour them.</p></div>
+      <div class="card"><h3>Spend the photo budget precisely</h3><p>The report names the exact garment-and-tone pairs that need a second model — instead of shooting everything on everybody.</p></div>
+      <div class="card"><h3>Fewer returns</h3><p>Product pages stop over-promising on colours that vanish against the buyer's skin. Colour dissatisfaction is a large slice of apparel returns.</p></div>
+      <div class="card"><h3>Cheap enough to be routine</h3><p>Auditing a 14-garment capsule costs about 168 API units — roughly one shopper session — and informs the whole season.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="paper">
+  <div class="wrap">
+    <h2>Built on the YouCam API</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Feature</th><th>Endpoint</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td>Apparel VTO</td><td><code>POST /s2s/v2.0/task/cloth</code></td><td>all 84 renders in the matrix</td></tr>
+          <tr><td>Skin AI</td><td><code>POST /s2s/v2.0/task/skin-analysis</code></td><td>per-model skin condition scores</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:22px">Runs are cached and content-addressed, so re-running after a crash or a threshold change costs nothing. A ledger projects spend before every call and stops cleanly at its cap, and the real remaining balance is read from the account rather than assumed.</p>
+    <p class="note">The report also checks its own evidence. A try-on can quietly return the model's original clothing, which would leave the report claiming a garment fails next to a photograph showing something else entirely. ShadeSpan measures the colour each render actually produced and flags the ones that drifted — 13 of 84 on this run. It's a heuristic, so it's reported as a warning and never changes the grade.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><a href="report.html">Full audit report</a> · <a href="https://github.com/Abhinav0905/shadespan">Source on GitHub</a> · Apache-2.0</p>
+    <p>Panel photographs used under the Unsplash License, attributed per photo in <code>assets/models/panel.json</code>. The demo catalog is generated by code in the repository; no third-party product imagery is used.</p>
+  </div>
+</footer>
+
+</body>
+</html>
