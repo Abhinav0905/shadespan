@@ -1,0 +1,48 @@
+# Render blueprint for the ShadeSpan dashboard.
+#
+# Deploy: push this repo, then on render.com pick "New > Blueprint" and point
+# it at the repo. Set the two secrets in the dashboard afterwards; they are
+# marked sync:false here precisely so they never live in git.
+#
+# Notes for a hosted instance, which differs from running locally:
+#
+#   * SHADESPAN_PUBLIC_UNIT_BUDGET caps what visitors can spend on drop-in
+#     try-ons. After that the dashboard keeps working and renders with the
+#     offline mock engine, so the page still demonstrates the idea without
+#     draining the account. Setting it to anything above 0 also forces the
+#     84-render catalogue audit to mock, since that is never a visitor's
+#     spend to make. Set it to 0 to remove both guards.
+#   * The free instance sleeps after ~15 minutes idle and takes roughly a
+#     minute to wake. Fine for a link a judge opens; not something to rely on
+#     mid-recording.
+#   * The disk is ephemeral. Renders written under runs/ survive the session
+#     and vanish on restart, which is all a demo needs.
+#   * No CA bundle here: SHADESPAN_CA_BUNDLE is only for corporate networks
+#     that intercept HTTPS, and Render's egress is direct.
+
+services:
+  - type: web
+    name: shadespan
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: uvicorn shadespan.server.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+      # Set these in the Render dashboard, not here.
+      - key: SHADESPAN_YOUCAM_API_KEY
+        sync: false
+      - key: SHADESPAN_YOUCAM_API_SECRET
+        sync: false
+
+      # Roughly 16 drop-in try-ons at 12 units each, then mock for everyone.
+      - key: SHADESPAN_PUBLIC_UNIT_BUDGET
+        value: "200"
+
+      # Measured against a live account: one cloth render costs 2 units.
+      - key: SHADESPAN_UNITS_PER_VTO
+        value: "2"

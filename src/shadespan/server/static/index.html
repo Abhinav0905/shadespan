@@ -111,6 +111,7 @@
       </select>
       <button id="tgo" disabled>Render on all six</button>
       <span class="units" id="tswatch"></span>
+      <span class="units" id="tbudget"></span>
     </div>
     <div class="status" id="tstatus"></div>
     <div id="verdict" hidden></div>
@@ -163,6 +164,24 @@ el('go').onclick = async () => {
 /* ---------------- drop a garment, render it on the whole panel -------------- */
 let picked = null, panel = [];
 fetch('/api/catalog').then(r => r.json()).then(d => { panel = d.panel.models; });
+
+/* A hosted instance runs on a fixed live allowance; say so up front rather
+   than letting a visitor pick Live and silently get mock. */
+async function refreshBudget(){
+  try {
+    const b = await (await fetch('/api/budget')).json();
+    const sel = el('tmode'), note = el('tbudget');
+    if (!b.capped) return;
+    if (!b.live_available) {
+      sel.value = 'mock';
+      [...sel.options].find(o => o.value === 'live').disabled = true;
+      note.textContent = `Live allowance for this demo is used up (${b.spent}/${b.cap} units) — rendering offline.`;
+    } else {
+      note.textContent = `${b.left} of ${b.cap} demo units left.`;
+    }
+  } catch (e) { /* local runs have no cap */ }
+}
+refreshBudget();
 
 const drop = el('drop');
 drop.onclick = () => el('file').click();
@@ -230,15 +249,19 @@ el('tgo').onclick = async () => {
       clearInterval(timer); el('tgo').disabled = false;
       const bad = j.min_score < 50;
       const v = el('verdict');
+      const note = j.downgraded
+        ? '<br><span class="sub">The live allowance for this hosted demo is used up, so this was rendered offline by the mock engine. Scores are identical; the images are illustrations rather than YouCam renders.</span>'
+        : '';
       v.className = bad ? 'bad' : 'good'; v.hidden = false;
-      v.innerHTML = bad
+      v.innerHTML = (bad
         ? `<b>Grade ${j.grade} — this colour fails on ${j.worst}.</b><br>
            <span class="sub">Worst cell scores ${j.min_score.toFixed(0)}/100. Graded on the weakest tone, not the average.
            ${j.units ? j.units + ' units spent.' : ''}</span>`
         : `<b>Grade ${j.grade} — holds across all six tones.</b><br>
            <span class="sub">Weakest cell still scores ${j.min_score.toFixed(0)}/100 (${j.worst}).
-           ${j.units ? j.units + ' units spent.' : ''}</span>`;
+           ${j.units ? j.units + ' units spent.' : ''}</span>`) + note;
       el('tstatus').textContent = '';
+      refreshBudget();
     }
     if (j.status === 'error') {
       clearInterval(timer); el('tgo').disabled = false;

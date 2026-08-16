@@ -48,13 +48,20 @@ def get_catalog():
 @app.post("/api/runs")
 def start_run(req: StartAudit):
     job_id = f"job-{len(_jobs) + 1}"
-    _jobs[job_id] = {"status": "running", "done": 0, "total": 0, "run_id": None, "error": None}
+    # A full catalogue audit is 84 renders. On a hosted instance running to a
+    # fixed allowance that is never a visitor's to spend, so it runs offline.
+    # Downgrading beats capping: a capped run returns 84 "skipped" cells and
+    # an empty report, which reads as broken rather than protected.
+    live = req.live and settings.public_unit_budget <= 0
+    downgraded = req.live and not live
+    _jobs[job_id] = {"status": "running", "done": 0, "total": 0, "run_id": None,
+                     "error": None, "live": live, "downgraded": downgraded}
 
     def work() -> None:
         try:
             cat, cat_dir = _load_catalog(DEFAULT_CATALOG)
             pan, pan_dir = _load_panel(DEFAULT_PANEL)
-            client = _make_client(req.live, cat, cat_dir, pan, pan_dir)
+            client = _make_client(live, cat, cat_dir, pan, pan_dir)
 
             def progress(done: int, total: int) -> None:
                 _jobs[job_id].update(done=done, total=total)
@@ -62,7 +69,7 @@ def start_run(req: StartAudit):
             async def _run():
                 try:
                     return await run_audit(client, cat, cat_dir, pan, pan_dir, RUNS_DIR,
-                                           mode="live" if req.live else "mock",
+                                           mode="live" if live else "mock",
                                            max_units=req.max_units, skus=req.skus,
                                            progress_cb=progress)
                 finally:
@@ -103,6 +110,27 @@ def report(run_id: str):
 
 TRYON_DIR = RUNS_DIR / "_tryon"
 
+# Units this process has spent on drop-in try-ons. Compared against
+# settings.public_unit_budget so a hosted instance degrades to mock instead of
+# draining the account. Process-local on purpose: a restart is a fresh budget,
+# which is the right behaviour for a demo box and the wrong one for billing.
+_spent_units = 0
+
+
+def _budget() -> dict:
+    """How much of the public allowance is left, for the UI to show."""
+    cap = settings.public_unit_budget
+    if cap <= 0:
+        return {"capped": False, "live_available": True}
+    left = max(0, cap - _spent_units)
+    return {"capped": True, "cap": cap, "spent": _spent_units, "left": left,
+            "live_available": left >= settings.units_per_vto * 6}
+
+
+@app.get("/api/budget")
+def budget():
+    return _budget()
+
 
 @app.post("/api/tryon")
 async def start_tryon(
@@ -137,10 +165,18 @@ async def start_tryon(
                       category=cat, hex=garment_hex, image=garment_path.name)
 
     pan, pan_dir = _load_panel(DEFAULT_PANEL)
+
+    # Downgrade rather than refuse: a visitor who arrives after the allowance
+    # is gone should still see the whole interaction, just rendered offline.
+    downgraded = False
+    if live and not _budget()["live_available"]:
+        live, downgraded = False, True
+
     _jobs[job_id] = {
         "status": "running", "done": 0, "total": len(pan.models),
         "garment_hex": garment_hex, "garment_name": garment.name,
         "cells": [], "grade": None, "units": 0, "error": None,
+        "live": live, "downgraded": downgraded,
     }
 
     def work() -> None:
@@ -187,6 +223,8 @@ async def _tryon(job_id, job_dir, garment, garment_path, pan, pan_dir, live) -> 
                         delta_e=score.skin_delta_e, washout=score.washout,
                         flags=score.flags, grade=grade_for(score.score))
             if live:
+                global _spent_units
+                _spent_units += settings.units_per_vto
                 job["units"] = job.get("units", 0) + settings.units_per_vto
         except Exception as exc:  # noqa: BLE001 - one tone must not kill the panel
             cell.update(error=str(exc)[:200])

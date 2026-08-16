@@ -115,6 +115,42 @@ A cloth render costs **2 units**, measured against a live account rather than as
 
 The ledger projects spend before every live call and stops cleanly at the cap. Renders are content-addressed, so a re-run after a crash or a threshold tweak costs zero. Note that the cap is enforced against `units_per_vto`, so leaving that at a wrong value silently truncates a run — if cells come back `skipped`, check it first.
 
+## Running it somewhere other than your laptop
+
+`render.yaml` is a Render blueprint: point Render at the repo, set
+`SHADESPAN_YOUCAM_API_KEY` and `SHADESPAN_YOUCAM_API_SECRET` in its dashboard,
+and the dashboard is live.
+
+The thing worth understanding about a hosted instance is that it spends *your*
+units on behalf of strangers. `SHADESPAN_PUBLIC_UNIT_BUDGET` bounds that: once
+visitors have spent it, live mode stops being offered and the mock engine
+serves everyone. The page keeps working and keeps making the point — the
+scores are identical, the images become illustrations rather than YouCam
+renders — it just stops costing money. Any non-zero budget also forces the
+84-render catalogue audit to mock, since that was never a visitor's spend to
+make.
+
+Downgrading is deliberate rather than refusing or capping. A capped run
+returns 84 `skipped` cells and an empty report, which reads as broken; a
+refusal reads as broken too. Quietly rendering offline, and saying so on the
+result, is the only version where a visitor still sees the idea.
+
+Note that a static host cannot serve this. GitHub Pages runs the landing page
+and the report fine — they are plain files — but the drop-in try-on needs a
+server: it signs YouCam requests with the API secret, which can never be in
+browser JavaScript.
+
+## Behind a corporate proxy
+
+If your network intercepts HTTPS, every live call fails with
+`CERTIFICATE_VERIFY_FAILED`, because the proxy's root is not in certifi's
+store. Build a bundle that holds both and point the client at it:
+
+```bash
+make ca-bundle                        # certifi roots + ~/company-ca-bundle.pem
+echo 'SHADESPAN_CA_BUNDLE=ca-bundle.pem' >> .env
+```
+
 ## How scoring works
 
 Each cell scores 0 to 100:

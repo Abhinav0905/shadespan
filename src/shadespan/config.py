@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # the default trust store, which is right on an unmanaged machine.
     ca_bundle: str = ""
 
+    # --- Public deployment guard ---
+    # A hosted dashboard spends the account's units on behalf of strangers.
+    # Once this many units have gone on try-ons in one process, live mode
+    # stops being offered and the mock engine serves everyone: the page keeps
+    # working and demonstrating the idea, it just stops costing money. 0
+    # disables the guard, which is what you want locally.
+    public_unit_budget: int = 0
+
     # --- Orchestration ---
     concurrency: int = 3
     poll_interval_s: float = 2.0
