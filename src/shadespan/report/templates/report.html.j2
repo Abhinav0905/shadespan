@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ r.summary.catalog_name }} — ShadeSpan audit</title>
+<style>
+  :root{
+    --paper:#FCFCFA; --ink:#191712; --muted:#6E6A60; --line:#E4E1D8;
+    --pass:#0E7C5B; --good:#3E6E37; --warn:#A16A0E; --fail:#A93226;
+    --chip-pass:#E3F1EA; --chip-good:#EAF0E3; --chip-warn:#F6ECD7; --chip-fail:#F6DFDB;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .display{font-family:"Iowan Old Style",Palatino,"Palatino Linotype",Georgia,serif}
+  main{max-width:1180px;margin:0 auto;padding:48px 28px 80px}
+  header.mast{display:flex;justify-content:space-between;align-items:flex-end;
+       border-bottom:3px solid var(--ink);padding-bottom:22px;gap:24px;flex-wrap:wrap}
+  .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--muted)}
+  h1{font-size:44px;line-height:1.08;margin:6px 0 4px;font-weight:600}
+  .sub{color:var(--muted)}
+  .verdict{text-align:right}
+  .verdict .cov{font-size:56px;font-weight:650;line-height:1}
+  .verdict .cov small{font-size:15px;font-weight:400;color:var(--muted);display:block;margin-top:4px}
+  section{margin-top:44px}
+  h2{font-size:22px;margin:0 0 4px;font-weight:600}
+  .lede{color:var(--muted);margin:0 0 18px;max-width:70ch}
+
+  .offenders{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .offender{border:1px solid var(--line);border-left:5px solid var(--fail);
+       padding:14px 16px;background:#fff}
+  .offender b{font-size:16px}
+  .offender .why{color:var(--muted);font-size:13.5px;margin-top:6px}
+
+  table.matrix{border-collapse:collapse;width:100%;margin-top:10px}
+  .matrix th,.matrix td{border:1px solid var(--line);padding:8px;vertical-align:top;background:#fff}
+  .matrix thead th{position:sticky;top:0;background:var(--paper);border-bottom:2px solid var(--ink)}
+  .tonehead{min-width:128px}
+  .swatch{width:100%;height:26px;border-radius:4px;border:1px solid rgba(0,0,0,.15)}
+  .tonehead .lbl{font-size:12.5px;margin-top:6px;font-weight:600}
+  .tonehead .ita{font-size:11px;color:var(--muted)}
+  .gcell{min-width:190px}
+  .gname{font-weight:600}
+  .gmeta{font-size:12px;color:var(--muted);margin-top:2px}
+  .gswatch{display:inline-block;width:12px;height:12px;border-radius:3px;
+       border:1px solid rgba(0,0,0,.2);vertical-align:-1px;margin-right:6px}
+  .gradechip{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:99px;
+       font-weight:650;font-size:13px;border:1.5px solid currentColor}
+  .g-A,.g-B{color:var(--pass)} .g-C{color:var(--warn)} .g-D,.g-F{color:var(--fail)}
+  .cell img{width:100%;border-radius:4px;display:block}
+  .cell .noimg{width:100%;aspect-ratio:3/4;border-radius:4px;background:repeating-linear-gradient(
+       45deg,#f0eee8,#f0eee8 8px,#e7e4dc 8px,#e7e4dc 16px);display:flex;align-items:center;
+       justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:6px}
+  .chip{margin-top:6px;display:flex;justify-content:space-between;align-items:center;
+       padding:3px 8px;border-radius:5px;font-size:12.5px;font-weight:650}
+  .chip small{font-weight:400;color:inherit;opacity:.75}
+  .b-pass{background:var(--chip-pass);color:var(--pass)}
+  .b-good{background:var(--chip-good);color:var(--good)}
+  .b-warn{background:var(--chip-warn);color:var(--warn)}
+  .b-fail{background:var(--chip-fail);color:var(--fail)}
+
+  .gaps li{margin-bottom:6px}
+  .flaglist{margin:0;padding:0;list-style:none}
+  .flaglist li{border:1px solid var(--line);background:#fff;padding:12px 14px;margin-bottom:10px}
+  .flaglist .who{font-weight:650}
+  footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;
+       color:var(--muted);font-size:13px}
+  footer code{background:#F1EFE8;padding:1px 5px;border-radius:4px}
+  @media print{.matrix thead th{position:static}}
+</style>
+</head>
+<body>
+<main>
+  <header class="mast">
+    <div>
+      <div class="eyebrow">ShadeSpan catalog inclusivity audit · run {{ r.summary.run_id }} · {{ r.summary.mode }} mode</div>
+      <h1 class="display">{{ r.summary.catalog_name }}</h1>
+      <div class="sub">{{ r.catalog.brand }} · {{ r.catalog.garments|length }} garments × {{ r.panel.models|length }} skin tones · panel: {{ r.summary.panel_name }}</div>
+    </div>
+    <div class="verdict">
+      <div class="cov">{{ r.summary.coverage_pct }}%<small>of garments hold grade B or better on every tone</small></div>
+    </div>
+  </header>
+
+  {% if worst %}
+  <section>
+    <h2 class="display">Worst offenders</h2>
+    <p class="lede">Graded on the weakest tone, not the average. These are the garments a shopper will return, or never click, because the product photo hid how the color behaves on them.</p>
+    <div class="offenders">
+      {% for w in worst %}
+      {% set g = (r.catalog.garments | selectattr('sku','equalto',w.garment_sku) | list)[0] %}
+      <div class="offender">
+        <b>{{ g.name }}</b> <span class="gradechip g-{{ w.grade }}">{{ w.grade }}</span>
+        <div class="why">min score {{ w.min_score }} · weakest on {{ w.worst_tones | join(', ') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section>
+    <h2 class="display">The matrix</h2>
+    <p class="lede">Every garment rendered on every panel member{% if r.summary.mode == 'mock' %} (illustrated mock renders; live mode swaps in real YouCam Apparel VTO outputs){% endif %}. The chip is the visibility score: how clearly the garment reads against that skin tone, from the stronger of luminance and chromatic edge contrast, CIEDE2000 separation between garment and skin color, and chroma.</p>
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th class="gcell">Garment</th>
+          {% for t in tones %}
+          <th class="tonehead">
+            <div class="swatch" style="background:{{ t.m.skin_hex }}"></div>
+            <div class="lbl">{{ t.m.label }}</div>
+            <div class="ita">ITA {{ t.ita }}° · {{ t.band }}</div>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="gcell">
+            <div class="gname"><span class="gswatch" style="background:{{ row.g.hex }}"></span>{{ row.g.name }}</div>
+            <div class="gmeta">{{ row.g.sku }} · {{ row.g.hex }}{% if row.g.price_usd %} · ${{ row.g.price_usd }}{% endif %}</div>
+            {% if row.grade %}<span class="gradechip g-{{ row.grade.grade }}">grade {{ row.grade.grade }}</span>
+            <div class="gmeta">min {{ row.grade.min_score }} · mean {{ row.grade.mean_score }}</div>{% endif %}
+          </td>
+          {% for c in row.cells %}
+          <td class="cell">
+            {% if c.img %}<img src="{{ c.img }}" alt="{{ row.g.name }} render">{% else %}
+            <div class="noimg">{{ c.render.error if c.render and c.render.error else 'no render' }}</div>{% endif %}
+            {% if c.score %}
+            <div class="chip b-{{ c.band }}"><span>{{ c.score.score }}</span>
+              <small>{{ c.score.contrast_ratio }}:1 · ΔE {{ c.score.skin_delta_e }}</small></div>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {% if r.summary.palette_gaps %}
+  <section>
+    <h2 class="display">Palette gaps</h2>
+    <ul class="gaps">
+      {% for gap in r.summary.palette_gaps %}<li>{{ gap }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section>
+    <h2 class="display">Every flag, with its reason</h2>
+    <ul class="flaglist">
+      {% for grade in r.grades if grade.flags %}
+      {% set g = (r.catalog.garments | selectattr('sku','equalto',grade.garment_sku) | list)[0] %}
+      <li><span class="who">{{ g.name }}</span>
+        <ul>{% for f in grade.flags %}<li>{{ f }}</li>{% endfor %}</ul>
+      </li>
+      {% else %}
+      <li>No flags. Every garment clears the thresholds on every tone.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <footer>
+    Scores are deterministic: WCAG 2.x relative-luminance contrast, CIELAB (D65) lightness and hue-angle separation, CIEDE2000 for fidelity checks, ITA for tone banding. Thresholds live in <code>shadespan/scoring/metrics.py</code>. Units spent this run: <b>{{ r.summary.units_spent }}</b>. Renders by {{ 'YouCam Apparel VTO' if r.summary.mode == 'live' else 'ShadeSpan mock engine (zero API units)' }}.
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+__pycache__/
+*.egg-info/
+.env
+runs/
+smoke_vto.png
+.pytest_cache/
+dist/
+build/
+.venv/
+smoke_*.png

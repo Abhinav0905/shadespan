@@ -1,0 +1,118 @@
+{
+  "name": "ShadeSpan Demo Catalog SS26",
+  "brand": "Meridian Basics",
+  "garments": [
+    {
+      "sku": "TEE-IVORY",
+      "name": "Ivory Crew Tee",
+      "category": "upper_body",
+      "hex": "#F1E8DC",
+      "price_usd": 24,
+      "image": "tee-ivory.png"
+    },
+    {
+      "sku": "TEE-BLUSH",
+      "name": "Blush Crew Tee",
+      "category": "upper_body",
+      "hex": "#EFC4B8",
+      "price_usd": 24,
+      "image": "tee-blush.png"
+    },
+    {
+      "sku": "TEE-PALEYELLOW",
+      "name": "Pale Yellow Crew Tee",
+      "category": "upper_body",
+      "hex": "#F2E3A1",
+      "price_usd": 24,
+      "image": "tee-paleyellow.png"
+    },
+    {
+      "sku": "TEE-CAMEL",
+      "name": "Camel Crew Tee",
+      "category": "upper_body",
+      "hex": "#C19A6B",
+      "price_usd": 26,
+      "image": "tee-camel.png"
+    },
+    {
+      "sku": "TEE-OLIVE",
+      "name": "Olive Crew Tee",
+      "category": "upper_body",
+      "hex": "#6B7345",
+      "price_usd": 26,
+      "image": "tee-olive.png"
+    },
+    {
+      "sku": "TEE-COBALT",
+      "name": "Cobalt Crew Tee",
+      "category": "upper_body",
+      "hex": "#2B4FC7",
+      "price_usd": 26,
+      "image": "tee-cobalt.png"
+    },
+    {
+      "sku": "TEE-EMERALD",
+      "name": "Emerald Crew Tee",
+      "category": "upper_body",
+      "hex": "#0E7C5B",
+      "price_usd": 26,
+      "image": "tee-emerald.png"
+    },
+    {
+      "sku": "TEE-RUST",
+      "name": "Rust Crew Tee",
+      "category": "upper_body",
+      "hex": "#B4552D",
+      "price_usd": 26,
+      "image": "tee-rust.png"
+    },
+    {
+      "sku": "TEE-CHARCOAL",
+      "name": "Charcoal Crew Tee",
+      "category": "upper_body",
+      "hex": "#33383D",
+      "price_usd": 24,
+      "image": "tee-charcoal.png"
+    },
+    {
+      "sku": "TEE-WHITE",
+      "name": "Optic White Crew Tee",
+      "category": "upper_body",
+      "hex": "#FAFAFA",
+      "price_usd": 22,
+      "image": "tee-white.png"
+    },
+    {
+      "sku": "LS-CHOCOLATE",
+      "name": "Chocolate Long Sleeve",
+      "category": "upper_body",
+      "hex": "#5A3A26",
+      "price_usd": 32,
+      "image": "ls-chocolate.png"
+    },
+    {
+      "sku": "LS-SAGE",
+      "name": "Sage Long Sleeve",
+      "category": "upper_body",
+      "hex": "#A8B79A",
+      "price_usd": 32,
+      "image": "ls-sage.png"
+    },
+    {
+      "sku": "DRS-DUSTYPINK",
+      "name": "Dusty Pink Shift Dress",
+      "category": "dresses",
+      "hex": "#D8A7A0",
+      "price_usd": 58,
+      "image": "drs-dustypink.png"
+    },
+    {
+      "sku": "DRS-BLACK",
+      "name": "Jet Black Shift Dress",
+      "category": "dresses",
+      "hex": "#17181A",
+      "price_usd": 58,
+      "image": "drs-black.png"
+    }
+  ]
+}

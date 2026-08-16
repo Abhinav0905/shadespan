@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShadeSpan</title>
+<style>
+  :root{--paper:#FCFCFA;--ink:#191712;--muted:#6E6A60;--line:#E4E1D8;
+        --pass:#0E7C5B;--fail:#A93226;--accent:#191712}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .display{font-family:"Iowan Old Style",Palatino,"Palatino Linotype",Georgia,serif}
+  main{max-width:880px;margin:0 auto;padding:56px 24px}
+  .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--muted)}
+  h1{font-size:42px;margin:6px 0 8px;font-weight:600}
+  .lede{color:var(--muted);max-width:60ch}
+  .card{border:1px solid var(--line);background:#fff;padding:22px;margin-top:28px}
+  .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  label{font-weight:600}
+  select,input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff}
+  button{font:inherit;font-weight:650;padding:10px 20px;border-radius:8px;cursor:pointer;
+         border:2px solid var(--ink);background:var(--ink);color:#fff}
+  button.ghost{background:transparent;color:var(--ink)}
+  button:disabled{opacity:.5;cursor:default}
+  .swatches{display:flex;gap:6px;margin:14px 0 4px}
+  .swatches span{width:34px;height:34px;border-radius:6px;border:1px solid rgba(0,0,0,.15);display:inline-block}
+  progress{width:100%;height:10px;margin-top:14px}
+  .status{margin-top:10px;color:var(--muted)}
+  .status a{color:var(--pass);font-weight:650}
+  .warn{color:var(--fail);font-weight:600}
+  .units{font-size:13px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">ShadeSpan</div>
+  <h1 class="display">Audit the catalog. Every garment, every skin tone.</h1>
+  <p class="lede">Renders each garment on a six-tone Fitzpatrick panel with YouCam Apparel VTO, scores how the color reads on each tone, and writes an audit report your merch team can act on.</p>
+
+  <div class="card">
+    <div class="row">
+      <label>Panel</label><div class="swatches" id="swatches"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <label for="mode">Engine</label>
+      <select id="mode">
+        <option value="mock">Mock (zero API units)</option>
+        <option value="live">Live — YouCam Apparel VTO (spends units)</option>
+      </select>
+      <label for="cap">Unit cap</label>
+      <input id="cap" type="number" value="400" min="0" style="width:110px">
+      <button id="go">Run audit</button>
+    </div>
+    <div class="units" id="units"></div>
+    <progress id="bar" value="0" max="1" hidden></progress>
+    <div class="status" id="status">Ready. Mock mode is the default; nothing is spent until you pick Live.</div>
+  </div>
+</main>
+<script>
+const el = id => document.getElementById(id);
+let garments = 0, tones = 0, unitsPer = 10;
+
+fetch('/api/catalog').then(r => r.json()).then(d => {
+  garments = d.catalog.garments.length; tones = d.panel.models.length; unitsPer = d.units_per_vto;
+  el('swatches').innerHTML = d.panel.models.map(m =>
+    `<span title="${m.label} ${m.skin_hex}" style="background:${m.skin_hex}"></span>`).join('');
+  updateUnits();
+});
+function updateUnits(){
+  const live = el('mode').value === 'live';
+  el('units').textContent = live
+    ? `${garments} garments × ${tones} tones = ${garments*tones} renders, up to ${garments*tones*unitsPer} units before caching. Cap applies.`
+    : `${garments} garments × ${tones} tones = ${garments*tones} renders, 0 units.`;
+}
+el('mode').onchange = updateUnits;
+
+el('go').onclick = async () => {
+  el('go').disabled = true;
+  el('bar').hidden = false; el('bar').value = 0;
+  el('status').textContent = 'Starting…';
+  const body = { live: el('mode').value === 'live', max_units: parseInt(el('cap').value || '0') };
+  const { job_id } = await (await fetch('/api/runs', {method:'POST',
+    headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})).json();
+  const timer = setInterval(async () => {
+    const j = await (await fetch('/api/runs/' + job_id)).json();
+    if (j.total) { el('bar').max = j.total; el('bar').value = j.done;
+      el('status').textContent = `Rendering ${j.done}/${j.total}…`; }
+    if (j.status === 'done') {
+      clearInterval(timer); el('go').disabled = false;
+      const s = j.summary;
+      el('status').innerHTML =
+        `Done. Coverage <b>${s.coverage_pct}%</b> at grade B+ across all tones · units spent ${s.units_spent} · ` +
+        `<a href="/runs/${j.run_id}/report" target="_blank">Open the report</a>`;
+    }
+    if (j.status === 'error') {
+      clearInterval(timer); el('go').disabled = false;
+      el('status').innerHTML = `<span class="warn">Run failed:</span> ${j.error}`;
+    }
+  }, 700);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+{
+  "name": "Fitzpatrick I-VI reference panel (Unsplash, locally sampled)",
+  "models": [
+    {
+      "id": "F1",
+      "label": "Fitzpatrick I",
+      "fitzpatrick": "I",
+      "skin_hex": "#C9A798",
+      "image": "f1_1590086782792.jpg",
+      "source": "sampled",
+      "credit": "Unsplash photo 1590086782792 (Unsplash License)",
+      "credit_url": "https://unsplash.com/photos/1590086782792"
+    },
+    {
+      "id": "F2",
+      "label": "Fitzpatrick II",
+      "fitzpatrick": "II",
+      "skin_hex": "#EBB79F",
+      "image": "f2_1582896911227.jpg",
+      "source": "sampled",
+      "credit": "Unsplash photo 1582896911227 (Unsplash License)",
+      "credit_url": "https://unsplash.com/photos/1582896911227"
+    },
+    {
+      "id": "F3",
+      "label": "Fitzpatrick III",
+      "fitzpatrick": "III",
+      "skin_hex": "#B28A76",
+      "image": "f3_1583195763986.jpg",
+      "source": "sampled",
+      "credit": "Unsplash photo 1583195763986 (Unsplash License)",
+      "credit_url": "https://unsplash.com/photos/1583195763986"
+    },
+    {
+      "id": "F4",
+      "label": "Fitzpatrick IV",
+      "fitzpatrick": "IV",
+      "skin_hex": "#C99161",
+      "image": "f4_1507003211169.jpg",
+      "source": "sampled",
+      "credit": "Unsplash photo 1507003211169 (Unsplash License)",
+      "credit_url": "https://unsplash.com/photos/1507003211169"
+    },
+    {
+      "id": "F5",
+      "label": "Fitzpatrick V",
+      "fitzpatrick": "V",
+      "skin_hex": "#9A5D40",
+      "image": "f5_1710196598824.jpg",
+      "source": "sampled",
+      "credit": "Unsplash photo 1710196598824 (Unsplash License)",
+      "credit_url": "https://unsplash.com/photos/1710196598824"
+    },
+    {
+      "id": "F6",
+      "label": "Fitzpatrick VI",
+      "fitzpatrick": "VI",
+      "skin_hex": "#6F5046",
+      "image": "f6_1565148343401.jpg",
+      "source": "sampled",
+      "credit": "Unsplash photo 1565148343401 (Unsplash License)",
+      "credit_url": "https://unsplash.com/photos/1565148343401"
+    }
+  ]
+}
