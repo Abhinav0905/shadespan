@@ -6,7 +6,11 @@ Everything Devpost asks for, in the order the form asks for it. Repo: https://gi
 
 ## Elevator pitch (200 char limit)
 
-Everyone points virtual try-on at the shopper. ShadeSpan points it at the catalog — rendering every garment on every skin tone to find the colors that disappear before the season ships.
+The same t-shirt is obvious on one customer and nearly invisible on another. ShadeSpan renders every garment on every skin tone with YouCam VTO and grades the colours that vanish — before launch.
+
+## Cover image
+
+Use `docs/screenshots/cover.png` (1200x630). It is the side-by-side proof, not the matrix — a judge scrolling a gallery has to understand the idea from the thumbnail alone, and a 14x6 grid of small faces reads as "some kind of chart". One garment on two people reads instantly.
 
 ---
 

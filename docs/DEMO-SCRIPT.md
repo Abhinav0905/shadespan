@@ -12,19 +12,19 @@ Speak slowly. The pictures do most of the work — you do not need to fill every
 
 ## Part 1 — What is the problem? (0:00 – 0:35)
 
-> **On screen:** any online shop's product page, showing one garment on one model. Then the landing page headline.
+> **On screen — start here, no talking for two seconds:** the two side-by-side photos from the top of the landing page. Same blush t-shirt, two different people. Let the viewer look before you say anything.
 
 Say:
 
-"Look at almost any clothing website. Every item is photographed on one model.
+"This is the same t-shirt. The same colour. On two different customers.
 
-But customers do not all have that model's skin tone. So everyone else is guessing.
+On the right, you can see it. On the left, it has almost the same brightness as her skin — so its edges stop existing. In a small listing photo, she is looking at a blank shape.
 
-And sometimes the guess is wrong in an expensive way. A beige t-shirt can blend straight into fair skin. A pale yellow can look washed out on deep skin. A camel jumper can almost disappear on the exact skin tone it matches.
+That is not an editing trick. Both pictures came out of the same system, one after the other.
 
-When that happens, the customer either never clicks buy, or they buy it and send it back.
+Now — the brand photographed this t-shirt once, on one model, and never found out. And to check properly, they would have to photograph 14 garments on 6 different models. That is 84 separate photo shoots. Nobody has time for that.
 
-The brand almost never finds out which items are doing this. To check properly you would need to photograph 14 garments on 6 different models. That is 84 photo shoots. Nobody has time for that. So the problem is only discovered months later, hidden inside the returns data."
+So the colour ships anyway. And the brand only finds out months later, buried in the returns data."
 
 ---
 
@@ -100,8 +100,8 @@ Thank you."
 
 | # | Time | What to show |
 |---|---|---|
-| 1 | 0:00 | A clothing product page with one model. Or open the landing page headline. |
-| 2 | 0:20 | The landing page "The problem" section. |
+| 1 | 0:00 | The two side-by-side photos at the top of the landing page. **Hold silently for 2 seconds.** |
+| 2 | 0:22 | The landing page "Why nobody catches this today" numbers. |
 | 3 | 0:35 | Terminal: `shadespan audit --live --max-units 250` running to 84. |
 | 4 | 1:05 | The render matrix, scrolling slowly from top to bottom. |
 | 5 | 1:30 | `report.html` in a browser — worst offenders, then one expanded row of scores. |
