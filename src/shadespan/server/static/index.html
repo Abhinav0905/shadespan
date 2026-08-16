@@ -30,6 +30,34 @@
   .status a{color:var(--pass);font-weight:650}
   .warn{color:var(--fail);font-weight:600}
   .units{font-size:13px;color:var(--muted);margin-top:8px}
+
+  .drop{border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;
+        cursor:pointer;transition:border-color .15s,background .15s;position:relative;min-height:132px;
+        display:flex;align-items:center;justify-content:center}
+  .drop.over{border-color:var(--ink);background:#F7F6F2}
+  .drop-inner b{display:block;font-size:15px}
+  .drop-inner span{color:var(--muted);font-size:13px}
+  .drop img{max-height:150px;max-width:100%;border-radius:6px}
+  .chip{display:inline-block;width:14px;height:14px;border-radius:4px;
+        border:1px solid rgba(0,0,0,.18);vertical-align:-2px;margin-right:6px}
+
+  .panelgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:16px}
+  @media (max-width:760px){.panelgrid{grid-template-columns:repeat(3,1fr)}}
+  .pcell{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;
+         opacity:0;transform:translateY(6px);animation:pop .32s ease forwards}
+  @keyframes pop{to{opacity:1;transform:none}}
+  .pcell img{width:100%;display:block;aspect-ratio:3/4;object-fit:cover}
+  .pcell .meta{padding:7px 8px}
+  .pcell .tone{font-size:11px;color:var(--muted);letter-spacing:.04em}
+  .pcell .sc{font-weight:700;font-size:15px}
+  .pcell.fail .sc{color:var(--fail)} .pcell.pass .sc{color:var(--pass)}
+  .pcell .sub{font-size:11px;color:var(--muted)}
+  .pcell.skel{background:repeating-linear-gradient(90deg,#F4F2EE,#F4F2EE 12px,#EDEAE4 12px,#EDEAE4 24px);
+              min-height:190px;animation:none;opacity:1}
+  #verdict{margin-top:16px;padding:14px 16px;border-radius:8px;border:1px solid var(--line)}
+  #verdict.bad{background:#FBEEEB;border-color:#EBD3CD}
+  #verdict.good{background:#EDF5F0;border-color:#CFE4D8}
+  #verdict b{font-size:17px}
 </style>
 </head>
 <body>
@@ -55,6 +83,38 @@
     <div class="units" id="units"></div>
     <progress id="bar" value="0" max="1" hidden></progress>
     <div class="status" id="status">Ready. Mock mode is the default; nothing is spent until you pick Live.</div>
+  </div>
+
+  <h2 class="display" style="margin:44px 0 6px;font-size:26px;font-weight:600">Try one garment on the whole panel</h2>
+  <p class="lede" style="margin:0">Drop in any product photo — a sample, a supplier shot, a colourway you have not committed to. Six renders, about 12 units, under half a minute.</p>
+
+  <div class="card" style="margin-top:18px">
+    <div id="drop" class="drop">
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+      <div class="drop-inner">
+        <b>Drop a garment image here</b>
+        <span>or click to choose · PNG, JPG, WebP</span>
+      </div>
+      <img id="preview" alt="" hidden>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <label for="tcat">Worn on</label>
+      <select id="tcat">
+        <option value="upper_body">Upper body</option>
+        <option value="lower_body">Lower body</option>
+        <option value="full_body">Full body / dress</option>
+      </select>
+      <label for="tmode">Engine</label>
+      <select id="tmode">
+        <option value="live">Live — YouCam Apparel VTO</option>
+        <option value="mock">Mock (zero units)</option>
+      </select>
+      <button id="tgo" disabled>Render on all six</button>
+      <span class="units" id="tswatch"></span>
+    </div>
+    <div class="status" id="tstatus"></div>
+    <div id="verdict" hidden></div>
+    <div id="panelgrid" class="panelgrid"></div>
   </div>
 </main>
 <script>
@@ -98,6 +158,93 @@ el('go').onclick = async () => {
       el('status').innerHTML = `<span class="warn">Run failed:</span> ${j.error}`;
     }
   }, 700);
+};
+
+/* ---------------- drop a garment, render it on the whole panel -------------- */
+let picked = null, panel = [];
+fetch('/api/catalog').then(r => r.json()).then(d => { panel = d.panel.models; });
+
+const drop = el('drop');
+drop.onclick = () => el('file').click();
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('over');
+  if (e.dataTransfer.files[0]) take(e.dataTransfer.files[0]);
+});
+el('file').onchange = e => { if (e.target.files[0]) take(e.target.files[0]); };
+
+function take(f){
+  picked = f;
+  const img = el('preview');
+  img.src = URL.createObjectURL(f); img.hidden = false;
+  drop.querySelector('.drop-inner').hidden = true;
+  el('tgo').disabled = false;
+  el('tstatus').textContent = `${f.name} ready.`;
+  el('verdict').hidden = true; el('panelgrid').innerHTML = ''; el('tswatch').textContent = '';
+}
+
+function cellHTML(c){
+  if (c.error) return `<div class="pcell"><div class="meta"><div class="tone">${c.tone_id}</div>
+      <div class="sub warn">failed</div></div></div>`;
+  const cls = c.score >= 65 ? 'pass' : (c.score < 50 ? 'fail' : '');
+  return `<div class="pcell ${cls}">
+    <img src="${c.image}" alt="Garment rendered on ${c.label}">
+    <div class="meta">
+      <div class="tone">${c.tone_id} · Fitz ${c.fitzpatrick}</div>
+      <div class="sc">${c.score.toFixed(0)}<span class="sub"> /100 · ${c.grade}</span></div>
+      <div class="sub">${c.contrast.toFixed(2)}:1 · ΔE ${c.delta_e.toFixed(0)}</div>
+    </div></div>`;
+}
+
+el('tgo').onclick = async () => {
+  if (!picked) return;
+  el('tgo').disabled = true;
+  el('verdict').hidden = true;
+  const live = el('tmode').value === 'live';
+  el('tstatus').textContent = live ? 'Uploading, then rendering on six models…' : 'Rendering…';
+  el('panelgrid').innerHTML = panel.map(() => '<div class="pcell skel"></div>').join('');
+
+  const fd = new FormData();
+  fd.append('file', picked); fd.append('live', live); fd.append('category', el('tcat').value);
+  let started;
+  try {
+    const res = await fetch('/api/tryon', { method:'POST', body: fd });
+    started = await res.json();
+    if (!res.ok) throw new Error(started.detail || 'upload failed');
+  } catch (err) {
+    el('tstatus').innerHTML = `<span class="warn">${err.message}</span>`;
+    el('tgo').disabled = false; el('panelgrid').innerHTML = ''; return;
+  }
+  el('tswatch').innerHTML = `<span class="chip" style="background:${started.garment_hex}"></span>detected ${started.garment_hex}`;
+
+  const timer = setInterval(async () => {
+    const j = await (await fetch('/api/tryon/' + started.job_id)).json();
+    el('tstatus').textContent = `Rendering ${j.done}/${j.total}…` + (j.units ? ` · ${j.units} units` : '');
+    if (j.cells.length) {
+      const byTone = Object.fromEntries(j.cells.map(c => [c.tone_id, c]));
+      el('panelgrid').innerHTML = panel.map(m =>
+        byTone[m.id] ? cellHTML(byTone[m.id]) : '<div class="pcell skel"></div>').join('');
+    }
+    if (j.status === 'done') {
+      clearInterval(timer); el('tgo').disabled = false;
+      const bad = j.min_score < 50;
+      const v = el('verdict');
+      v.className = bad ? 'bad' : 'good'; v.hidden = false;
+      v.innerHTML = bad
+        ? `<b>Grade ${j.grade} — this colour fails on ${j.worst}.</b><br>
+           <span class="sub">Worst cell scores ${j.min_score.toFixed(0)}/100. Graded on the weakest tone, not the average.
+           ${j.units ? j.units + ' units spent.' : ''}</span>`
+        : `<b>Grade ${j.grade} — holds across all six tones.</b><br>
+           <span class="sub">Weakest cell still scores ${j.min_score.toFixed(0)}/100 (${j.worst}).
+           ${j.units ? j.units + ' units spent.' : ''}</span>`;
+      el('tstatus').textContent = '';
+    }
+    if (j.status === 'error') {
+      clearInterval(timer); el('tgo').disabled = false;
+      el('tstatus').innerHTML = `<span class="warn">Failed:</span> ${j.error}`;
+    }
+  }, 600);
 };
 </script>
 </body>

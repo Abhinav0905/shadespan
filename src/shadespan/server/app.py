@@ -10,7 +10,7 @@ import asyncio
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -92,4 +92,134 @@ def report(run_id: str):
     path = RUNS_DIR / run_id / "report.html"
     if not path.exists():
         raise HTTPException(404, "report not found")
+    return FileResponse(path)
+
+
+# ------------------------------------------------------------ drop a garment
+# One garment against the whole panel. The catalog audit answers "which of my
+# products fail"; this answers "would this one" for something not in the
+# catalog yet - a sample, a supplier photo, a colourway still being decided.
+# Six renders, so roughly 12 units and under half a minute.
+
+TRYON_DIR = RUNS_DIR / "_tryon"
+
+
+@app.post("/api/tryon")
+async def start_tryon(
+    file: UploadFile = File(...),
+    live: bool = Form(True),
+    category: str = Form("upper_body"),
+):
+    from ..models import Garment, GarmentCategory
+    from ..scoring.swatch import dominant_garment_hex
+
+    job_id = f"tryon-{len(_jobs) + 1}"
+    job_dir = TRYON_DIR / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    suffix = Path(file.filename or "garment.png").suffix.lower() or ".png"
+    if suffix not in (".png", ".jpg", ".jpeg", ".webp"):
+        raise HTTPException(400, "garment must be a png, jpg or webp image")
+    garment_path = job_dir / f"garment{suffix}"
+    garment_path.write_bytes(await file.read())
+
+    try:
+        garment_hex = dominant_garment_hex(garment_path)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(400, f"could not read that image: {exc}") from exc
+
+    try:
+        cat = GarmentCategory(category)
+    except ValueError:
+        cat = GarmentCategory.upper_body
+
+    garment = Garment(sku="DROPPED", name=Path(file.filename or "Dropped garment").stem,
+                      category=cat, hex=garment_hex, image=garment_path.name)
+
+    pan, pan_dir = _load_panel(DEFAULT_PANEL)
+    _jobs[job_id] = {
+        "status": "running", "done": 0, "total": len(pan.models),
+        "garment_hex": garment_hex, "garment_name": garment.name,
+        "cells": [], "grade": None, "units": 0, "error": None,
+    }
+
+    def work() -> None:
+        try:
+            asyncio.run(_tryon(job_id, job_dir, garment, garment_path, pan, pan_dir, live))
+        except Exception as exc:  # noqa: BLE001
+            _jobs[job_id].update(status="error", error=str(exc)[:400])
+
+    threading.Thread(target=work, daemon=True).start()
+    return {"job_id": job_id, "garment_hex": garment_hex}
+
+
+async def _tryon(job_id, job_dir, garment, garment_path, pan, pan_dir, live) -> None:
+    from ..scoring.fidelity import render_drift
+    from ..scoring.grade import grade_for
+    from ..scoring.metrics import score_cell
+
+    cat_stub, _ = _load_catalog(DEFAULT_CATALOG)
+    client = _make_client(live, cat_stub, garment_path.parent, pan, pan_dir)
+    # The mock engine paints by filename, so teach it this one.
+    if hasattr(client, "_garment_hexes"):
+        client._garment_hexes[garment_path.name] = garment.hex
+
+    job = _jobs[job_id]
+    sem = asyncio.Semaphore(settings.concurrency)
+
+    async def one(model):
+        person = model.image_path(pan_dir)
+        cell = {"tone_id": model.id, "label": model.label, "fitzpatrick": model.fitzpatrick,
+                "skin_hex": model.skin_hex}
+        try:
+            async with sem:
+                img, _task = await client.try_on(person, garment_path, garment.category.value)
+            out = job_dir / f"{model.id}.png"
+            out.write_bytes(img)
+            drift = None
+            try:
+                drift, _hex = render_drift(out, person, garment.hex)
+            except Exception:  # noqa: BLE001 - advisory only
+                pass
+            score = score_cell(garment, model, fidelity_delta_e=drift)
+            cell.update(image=f"/api/tryon/{job_id}/render/{model.id}.png",
+                        score=score.score, contrast=score.contrast_ratio,
+                        delta_e=score.skin_delta_e, washout=score.washout,
+                        flags=score.flags, grade=grade_for(score.score))
+            if live:
+                job["units"] = job.get("units", 0) + settings.units_per_vto
+        except Exception as exc:  # noqa: BLE001 - one tone must not kill the panel
+            cell.update(error=str(exc)[:200])
+        job["cells"].append(cell)
+        job["done"] = len(job["cells"])
+        return cell
+
+    try:
+        cells = await asyncio.gather(*(one(m) for m in pan.models))
+    finally:
+        await client.aclose()
+
+    order = {m.id: i for i, m in enumerate(pan.models)}
+    job["cells"] = sorted(cells, key=lambda c: order[c["tone_id"]])
+    scored = [c["score"] for c in cells if "score" in c]
+    job["grade"] = grade_for(min(scored)) if scored else None
+    job["min_score"] = min(scored) if scored else None
+    job["worst"] = min((c for c in cells if "score" in c),
+                       key=lambda c: c["score"], default={}).get("label")
+    job["status"] = "done"
+
+
+@app.get("/api/tryon/{job_id}")
+def tryon_status(job_id: str):
+    job = _jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "unknown job")
+    return JSONResponse(job)
+
+
+@app.get("/api/tryon/{job_id}/render/{name}")
+def tryon_render(job_id: str, name: str):
+    path = TRYON_DIR / job_id / Path(name).name
+    if not path.exists():
+        raise HTTPException(404, "render not found")
     return FileResponse(path)

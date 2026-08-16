@@ -84,6 +84,14 @@ Or the dashboard:
 shadespan serve   # http://127.0.0.1:8787
 ```
 
+### Drop in a garment that isn't in the catalog
+
+The dashboard takes any product photo — a sample, a supplier shot, a colourway still being argued about — reads its colour straight out of the pixels, and renders it on all six panel members. Six renders, about 12 units, roughly 30 seconds.
+
+![Dropping a garment on the panel](docs/screenshots/04-drop-result.png)
+
+Two ready-made examples live in `assets/demo-drops/`: a sand tee that grades **F** (it sits within a few dE of four of the six skin tones) and a teal tee that grades **B** across the whole panel.
+
 ## Live mode
 
 ```bash
