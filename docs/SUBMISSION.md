@@ -6,11 +6,24 @@ Everything Devpost asks for, in the order the form asks for it. Repo: https://gi
 
 ## Elevator pitch (200 char limit)
 
+Paste this — 195 characters:
+
+```
 The same t-shirt is obvious on one customer and nearly invisible on another. ShadeSpan renders every garment on every skin tone with YouCam VTO and grades the colours that vanish — before launch.
+```
 
-## Cover image
+## Thumbnail
 
-Use `docs/screenshots/cover.png` (1200x630). It is the side-by-side proof, not the matrix — a judge scrolling a gallery has to understand the idea from the thumbnail alone, and a 14x6 grid of small faces reads as "some kind of chart". One garment on two people reads instantly.
+Devpost asks for 3:2. Use **`docs/screenshots/thumbnail-3x2.png`** (1500x1000, 754 KB)
+— also copied to `~/Desktop/ShadeSpan-thumbnail.png`.
+
+`cover.png` is 1200x630 (1.90:1), which is why Devpost crops its text off both
+edges; keep that one for YouTube, where 16:9 is right.
+
+It is the side-by-side proof rather than the 14x6 matrix, because a judge
+scrolling a gallery has to get the idea from the thumbnail alone. A grid of
+small faces reads as "some kind of chart"; one garment on two people reads
+instantly, and it still holds at 330px wide.
 
 ---
 
